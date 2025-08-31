@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <meta charset="UTF-8" />
+  <title>LearnBoard</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+    :root {
+      --bg-dark: #181A1B;
+      --card-dark: #232527;
+      --accent-dark: #339CFF;
+      --text-dark: #F0F2F5;
+      --shadow-dark: 0 4px 16px rgba(0,0,0,0.5);
+      --bg: #f4f4f4;
+      --card: #ffffff;
+      --accent: #007bff;
+      --text: #333333;
+      --high: #ff6961;
+      --medium: #fdbb38;
+      --low: #77dd77;
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+
+
+      --radius: 8px;
+
+
+      --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-medium: 0 4px 8px rgba(0, 0, 0, 0.1);
+      --shadow-heavy: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    }
+
+
+#scheduleModal {
+   display:none;
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    background:white;
+    padding:20px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    max-width:90%;
+    max-height:80vh;
+    overflow:auto;
+    z-index:1000;
+}
+
+body.dark-mode #scheduleModal {
+  background: var(--card-dark) !important;
+  color: var(--text-dark) !important;
+  border-color: #2c2c2c !important;
+}
+
+
+    .spacer-btn {
+      display: block;
+      width: 100%;
+      height: 48px;
+      margin-bottom: var(--space-sm);
+      padding: 0;
+      background: none;
+      border: none;
+      visibility: hidden;
+      pointer-events: none;
+      transition: none;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      color: var(--text);
+      background: linear-gradient(135deg, #f4f4f4 0%, #fafafa 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hamburger {
+      position: fixed;
+      top: var(--space-lg);
+      right: var(--space-lg);
+      width: 30px;
+      height: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      z-index: 400;
+    }
+
+    .hamburger div {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--text);
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 100vh;
+      background: var(--card);
+      padding: var(--space-lg);
+      border-left: 1px solid #ddd;
+      border-top-left-radius: var(--radius);
+      border-bottom-left-radius: var(--radius);
+      box-shadow: var(--shadow-light);
+      transform: translateX(100%);
+      transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      z-index: 390;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar button {
+      background: var(--card);
+      width: 100%;
+      border-radius: var(--radius);
+      margin-bottom: var(--space-sm);
+      padding: var(--space-sm);
+      box-shadow: var(--shadow-light);
+      cursor: pointer;
+      outline: 2px solid transparent;
+      transition: box-shadow 0.2s, transform 0.1s, outline-color 0.2s;
+    }
+
+    .sidebar button:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-medium);
+      outline-color: var(--accent);
+    }
+
+    .board {
+      flex-grow: 1;
+      display: flex;
+      align-items: flex-start;
+      padding: var(--space-lg);
+      gap: var(--space-lg);
+      overflow-x: auto;
+    }
+
+    .column {
+      background: var(--card);
+      padding: var(--space-md);
+      border-radius: var(--radius);
+      width: 300px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-light);
+      transition: box-shadow 0.2s;
+    }
+
+    .column:hover {
+      box-shadow: var(--shadow-medium);
+
+    }
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: var(--card);
+      box-shadow: var(--shadow-medium);
+      display: flex;
+      height: 60px;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-lg);
+      z-index: 300;
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+    }
+
+    .navbar:hover {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: var(--card);
+      box-shadow: var(--shadow-heavy);
+      display: flex;
+      font-family: inherit;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-lg);
+      z-index: 300;
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+
+    }
+
+    .navbar-logo {
+      height: 32px;
+      width: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--bg);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .navbar-title {
+      font-family: inherit;
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: black;
+      letter-spacing: 0.03em;
+    }
+
+    .column h2 {
+      font-size: 1.125rem;
+      margin-bottom: var(--space-sm);
+      cursor: text;
+    }
+
+    .column h2[contenteditable]:focus {
+      outline: 2px solid var(--accent);
+    }
+
+    /* Task cards */
+    .task {
+      background: var(--card);
+      border-radius: var(--radius);
+      margin-bottom: var(--space-sm);
+      padding: var(--space-sm);
+      box-shadow: var(--shadow-light);
+      cursor: pointer;
+      outline: 2px solid transparent;
+      transition: box-shadow 0.2s, transform 0.1s, outline-color 0.2s;
+    }
+
+    .task:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-medium);
+      outline-color: var(--accent);
+    }
+
+    .task.completed {
+      background-color: #d0f0c0;
+      text-decoration: line-through;
+      opacity: 0.85;
+    }
+
+    .priority-high {
+      border-left: 6px solid var(--high);
+    }
+
+    .priority-medium {
+      border-left: 6px solid var(--medium);
+    }
+
+    .priority-low {
+      border-left: 6px solid var(--low);
+    }
+
+    .add-task-input {
+      flex: 1;
+      padding: var(--space-sm);
+      border-radius: var(--radius);
+      border: 1px solid #ccc;
+      background: #f9f9f9;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .add-task-input:focus {
+      background: #fff;
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .add-task-input:hover {
+      background: #fff;
+      box-shadow: var(--shadow-medium);
+      outline: none;
+    }
+
+
+    button {
+
+      font-family: inherit;
+      font-weight: 500;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+
+    button.primary {
+
+      background-color: var(--accent);
+      color: white;
+    }
+
+    button.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-medium);
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--accent);
+    }
+
+    button.secondary:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* Analyze button icon spacing */
+    .analyze-btn i {
+
+      margin-right: var(--space-xs);
+    }
+
+    /* Trash bin */
+    .trash-column {
+      margin-top: 150px;
+      background: #ffeaea;
+      border: 2px #6e6868;
+      border-radius: var(--radius);
+      padding: var(--space-md);
+      width: 250px;
+      height: 100px;
+      font-weight: bold;
+      color: #8f8989;
+      text-align: center;
+      transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .trash-column.drag-over {
+      background-color: #4f3436;
+      border-color: #c82333;
+    }
+
+    /* Modal */
+    #taskModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 300px;
+      padding: var(--space-lg);
+      background: var(--card);
+      border: 2px solid #ccc;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-heavy);
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 1000;
+    }
+
+    #taskModal input[type="text"],
+    #taskModal select {
+      width: 100%;
+      padding: var(--space-sm);
+      margin-bottom: var(--space-md);
+      border: 1px solid #ccc;
+      border-radius: var(--radius);
+    }
+
+    #taskModal button {
+      margin-top: var(--space-md);
+      margin-right: var(--space-lg);
+    }
+
+    @media (max-width: 768px) {
+      .board {
+        flex-direction: column;
+        padding: var(--space-sm);
+      }
+
+      .column {
+        width: auto;
+        margin-bottom: var(--space-lg);
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+    }
+
+
+
+    /*dark mode*/
+
+
+    body.dark-mode button,
+body.dark-mode .sidebar button {
+  background: var(--card-dark) !important;
+  color: var(--text-dark) !important;
+  border-color: var(--accent-dark) !important;
+}
+
+body.dark-mode button.primary {
+  background: var(--accent-dark) !important;
+  color: #fff !important;
+}
+
+body.dark-mode button.secondary {
+  background: transparent !important;
+  border-color: var(--accent-dark) !important;
+  color: var(--accent-dark) !important;
+}
+
+    body.dark-mode {
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #232527 100%);
+  color: var(--text-dark);
+}
+
+body.dark-mode .navbar,
+body.dark-mode .sidebar,
+body.dark-mode .column,
+body.dark-mode .task,
+body.dark-mode .trash-column,
+body.dark-mode #taskModal,
+body.dark-mode .navbar {
+  background: var(--card-dark) !important;
+  color: var(--text-dark) !important;
+  box-shadow: var(--shadow-dark) !important;
+}
+
+   body.dark-mode .trash-column.drag-over {
+      background-color:  var(--card-dark) !important;
+      border-color: #2c0408!important;
+    }
+
+
+body.dark-mode .navbar-title,
+body.dark-mode .task,
+body.dark-mode .add-task-input,
+body.dark-mode .sidebar button,
+body.dark-mode .column h2,
+body.dark-mode .navbar-logo {
+  color: var(--text-dark) !important;
+}
+
+body.dark-mode .add-task-input {
+  background: #232527 !important;
+  border-color: #333 !important;
+}
+
+body.dark-mode button.primary {
+  background-color: var(--accent-dark) !important;
+  color: #fff !important;
+}
+
+body.dark-mode button.secondary {
+  border-color: var(--accent-dark) !important;
+  color: var(--accent-dark) !important;
+}
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <div class="navbar">
+    <img src="icon.png" alt="App Logo" class="navbar-logo">
+    <span class="navbar-title">LearnBoard</span>
+  </div>
+
+  <div id="scheduleModal" >
+    <h3>Your AI-Generated Schedule</h3>
+    <pre id="scheduleContent" style="white-space:pre-wrap;"></pre>
+    <button onclick="document.getElementById('scheduleModal').style.display='none'">
+      Close
+    </button>
+  </div>
+  <div id="sidebarToggle" class="hamburger">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <aside class="sidebar">
+
+    <button class="spacer-btn" disabled aria-hidden="true"></button>
+        <button id="darkModeToggle" class = "button">
+  🌙 Dark Mode
+</button>
+    <button onclick="analyzeTasks()" id = "analyzeButton">🔍 Analyze</button>
+    <button onclick="generateSchedule()">📅 Schedule</button>
+    <!-- Pomodoro Timer Section -->
+    <div id="pomodoro-card" style="margin-top:24px;margin-bottom:24px;">
+      <h3 style="margin-bottom: var(--space-sm);">Focus Timer</h3>
+      <div style="margin-bottom: 8px;">
+        <label for="pomoFocus">Focus (min):</label>
+        <input id="pomoFocus" type="number" class="add-task-input" value="25" min="1" style="margin-bottom:4px;">
+      </div>
+      <div style="margin-bottom: 8px;">
+        <label for="pomoBreak">Break (min):</label>
+        <input id="pomoBreak" type="number" class="add-task-input" value="5" min="1" style="margin-bottom:4px;">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label for="pomoCycles"># Cycles:</label>
+        <input id="pomoCycles" type="number" class="add-task-input" value="4" min="1">
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <button onclick="pomoStart()" class="primary" style="flex:1;">▶ Start</button>
+        <button onclick="pomoPause()" class="secondary" style="flex:1;">Pause</button>
+        <button onclick="pomoReset()" class="secondary" style="flex:1;">Reset</button>
+      </div>
+      <div id="pomoStatus" style="font-size:15px; color:#555; margin-bottom:4px;">Ready</div>
+      <div id="pomoDisplay" style="font-size: 28px; font-weight: bold; text-align: center; padding: 4px 0;">25:00</div>
+    </div>
+
+
+
+    <div class="trash-wrapper">
+      <div class="trash-column">
+        <h2>Drop here to delete task or list</h2>
+      </div>
+    </div>
+  </aside>
+
+
+  <div class="board" id="board" ondragover="allowDrop(event)">
+    <div class="add-column-btn" onclick="showColumnInput()" draggable="false">+ Add a list</div>
+  </div>
+
+
+
+  <script>
+   
+    let completedAtStart = 0;
+
+    let draggedItem = null,
+      draggedData = null,
+      draggedFromColumn = null,
+      draggedColumnIndex = null;
+    let boardData = [];
+    let selectedTaskMeta = null;
+
+    function saveToStorage() {
+      localStorage.setItem("boardData", JSON.stringify(boardData));
+    }
+
+    function loadFromStorage() {
+      const saved = localStorage.getItem("boardData");
+      if (saved) {
+        boardData = JSON.parse(saved);
+        renderBoard();
+      }
+    }
+
+    function renderBoard() {
+      const board = document.getElementById("board");
+      const addBtn = board.querySelector(".add-column-btn");
+      board.innerHTML = '';
+      boardData.forEach((col, idx) => renderColumn(col.name, col.tasks, idx));
+      board.appendChild(addBtn);
+    }
+
+    function showColumnInput() {
+      const board = document.getElementById("board");
+      const wrapper = document.createElement("div");
+      wrapper.className = "controls";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "add-task-input"
+      input.placeholder = "Enter list name...";
+
+      wrapper.appendChild(input);
+      board.insertBefore(wrapper, board.querySelector(".add-column-btn"));
+      input.focus();
+      function createColumn() {
+        const name = input.value.trim();
+        wrapper.remove();
+        if (!name || boardData.some(c => c.name === name)) return;
+        boardData.push({ name, tasks: [] });
+        renderBoard();
+        saveToStorage();
+      }
+      input.onblur = createColumn;
+      input.onkeydown = e => { if (e.key === "Enter") createColumn(); };
+    }
+
+    function renderColumn(name, tasks, index) {
+      const board = document.getElementById("board");
+      const col = document.createElement("div");
+      col.className = "column";
+      col.draggable = true;
+      col.dataset.index = index;
+      col.ondragstart = e => { draggedColumnIndex = index; };
+      col.ondragover = allowDrop;
+      col.ondrop = e => handleDropOnColumn(e, name);
+
+      const title = document.createElement("h2");
+      title.textContent = name;
+      title.contentEditable = true;
+      title.onblur = () => {
+        const newName = title.textContent.trim();
+        if (newName && newName !== name) {
+          boardData.find(c => c.name === name).name = newName;
+          saveToStorage();
+        }
+      };
+
+      const input = document.createElement("input");
+      input.placeholder = "New task...";
+      input.className = "add-task-input";
+      input.onkeydown = e => {
+        if (e.key === "Enter") {
+          const text = input.value.trim();
+          if (!text) return;
+          const colData = boardData.find(c => c.name === name);
+          colData.tasks.push({ text, completed: false, priority: "", deadline: "" });
+          sortTasksInColumn(null, colData);
+          renderBoard();
+          saveToStorage();
+        }
+      };
+
+      col.appendChild(title);
+      tasks.forEach(t => col.appendChild(createTaskElement(t, name)));
+      col.appendChild(input);
+      board.insertBefore(col, board.querySelector(".add-column-btn"));
+    }
+
+    function createTaskElement(taskObj, colName) {
+      const task = document.createElement("div");
+      task.className = "task";
+      task.draggable = true;
+      task.textContent = taskObj.text;
+      if (taskObj.completed) task.classList.add("completed");
+      if (taskObj.priority) task.classList.add("priority-" + taskObj.priority);
+      if (taskObj.deadline) {
+        const dl = document.createElement("div");
+        dl.style.cssText = "font-size:12px;color:#555;margin-top:4px";
+        dl.textContent = "🗓 Due: " + taskObj.deadline;
+        task.appendChild(dl);
+      }
+      task.ondragstart = e => {
+        draggedItem = task;
+        draggedData = taskObj;
+        draggedFromColumn = colName;
+        setTimeout(() => task.style.display = "none", 0);
+      };
+      task.onclick = () => openTaskModal(task, taskObj, colName);
+      return task;
+    }
+
+    // allow any dragover
+    function allowDrop(e) {
+      e.preventDefault();
+    }
+
+    // unified handler for both tasks and columns
+    function handleDropOnColumn(e, colName) {
+      e.stopPropagation();
+      e.preventDefault();
+      // task move
+      if (draggedItem && draggedData && draggedFromColumn != null) {
+        draggedItem.style.display = "block";
+        const src = boardData.find(c => c.name === draggedFromColumn);
+        const dst = boardData.find(c => c.name === colName);
+        if (src) src.tasks = src.tasks.filter(t => t !== draggedData);
+        if (dst) dst.tasks.push(draggedData);
+        if (src) sortTasksInColumn(null, src);
+        if (dst) sortTasksInColumn(null, dst);
+        renderBoard();
+        saveToStorage();
+        draggedItem = draggedData = draggedFromColumn = null;
+        return;
+      }
+      // column reorder
+      if (draggedColumnIndex != null) {
+        const targetIndex = boardData.findIndex(c => c.name === colName);
+        if (targetIndex !== draggedColumnIndex) {
+          const [moved] = boardData.splice(draggedColumnIndex, 1);
+          boardData.splice(targetIndex, 0, moved);
+          renderBoard();
+          saveToStorage();
+        }
+        draggedColumnIndex = null;
+      }
+    }
+
+    // dropping into trash
+    function handleTrashDrop(e) {
+      e.preventDefault();
+      // delete task
+      if (draggedItem && draggedData && draggedFromColumn != null) {
+        const col = boardData.find(c => c.name === draggedFromColumn);
+        if (col) col.tasks = col.tasks.filter(t => t !== draggedData);
+        saveToStorage();
+        renderBoard();
+        draggedItem = draggedData = draggedFromColumn = null;
+        return;
+      }
+      // delete column
+      if (draggedColumnIndex != null && !draggedItem) {
+        boardData.splice(draggedColumnIndex, 1);
+        saveToStorage();
+        renderBoard();
+        draggedColumnIndex = null;
+      }
+    }
+
+    // reset after any drag ends
+    document.addEventListener("dragend", () => {
+      if (draggedItem && draggedItem.style.display === "none") {
+        draggedItem.style.display = "block";
+        draggedItem = draggedData = draggedFromColumn = null;
+      }
+      draggedColumnIndex = null;
+    });
+
+    function openTaskModal(el, data, col) {
+      selectedTaskMeta = { taskElement: el, taskData: data, colName: col };
+      let modal = document.getElementById("taskModal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "taskModal";
+        modal.innerHTML = `
+<label>Task:</label><br>
+<input type="text" id="taskTextInput" /><br><br>
+<label>Priority:
+  <select id="prioritySelect">
+    <option value="">Not Specified</option>
+    <option value="high">High</option>
+    <option value="medium">Medium</option>
+    <option value="low">Low</option>
+  </select>
+</label><br><br>
+<label>Deadline:
+  <input type="date" id="deadlineInput" />
+</label><br><br>
+<label><input type="checkbox" id="completedCheck"> Completed</label><br><br>
+<button onclick="saveTaskModal()">Save</button>
+<button onclick="closeTaskModal()">Cancel</button>`;
+        document.body.appendChild(modal);
+      }
+      document.getElementById("taskTextInput").value = data.text;
+      document.getElementById("prioritySelect").value = data.priority;
+      document.getElementById("completedCheck").checked = data.completed;
+      document.getElementById("deadlineInput").value = data.deadline;
+      modal.style.display = "block";
+    }
+
+    function saveTaskModal() {
+      const { taskData, colName } = selectedTaskMeta;
+      taskData.text = document.getElementById("taskTextInput").value.trim();
+      taskData.priority = document.getElementById("prioritySelect").value;
+      taskData.completed = document.getElementById("completedCheck").checked;
+      taskData.deadline = document.getElementById("deadlineInput").value;
+      saveToStorage();
+      closeTaskModal();
+      const col = boardData.find(c => c.name === colName);
+      if (col) sortTasksInColumn(null, col);
+      renderBoard();
+    }
+
+    function closeTaskModal() {
+      const m = document.getElementById("taskModal");
+      if (m) m.style.display = "none";
+      selectedTaskMeta = null;
+    }
+
+    function sortTasksInColumn(_, col) {
+      col.tasks.sort((a, b) => {
+        if (a.completed && !b.completed) return 1;
+        if (!a.completed && b.completed) return -1;
+        const order = { high: 1, medium: 2, low: 3, "": 4 };
+        return (order[a.priority] || 4) - (order[b.priority] || 4);
+      });
+      saveToStorage();
+    }
+
+    async function analyzeTasks() {
+      const btn = document.getElementById("analyzeButton");
+      btn.disabled = true;
+      btn.innerText = "Analyzing in progress"
+      const tasksPayload = boardData.flatMap(col =>
+
+        col.tasks
+          .filter(t => !t.completed)
+          .map(t => ({
+            text: t.text,
+            priority: t.priority,
+            completed: t.completed,
+            deadline: t.deadline
+          }))
+      );
+
+      const res = await fetch("http://localhost:3000/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: tasksPayload })
+      });
+
+      if (!res.ok) {
+           btn.innerText = "🔍 Analyze"
+      btn.disabled = false;
+        const err = await res.text();
+        return alert("Analyze failed: " + err);
+      }
+
+      const { assignments } = await res.json();
+
+
+      assignments.forEach(({ text, priority }) => {
+
+        boardData.forEach(col => {
+          col.tasks.forEach(task => {
+            if (task.text === text) {
+              task.priority = priority;
+            }
+          });
+        });
+      });
+
+      boardData.forEach(col => sortTasksInColumn(null, col));
+
+      saveToStorage();
+      renderBoard();
+        btn.innerText = "🔍 Analyze"
+      btn.disabled = false;
+      alert("✅ Priorities updated!");
+
+    }
+    async function generateSchedule() {
+
+      const tasks = boardData.flatMap(col =>
+        col.tasks.map(t => ({
+          text: t.text,
+          priority: t.priority,
+          completed: t.completed,
+          deadline: t.deadline
+        }))
+      );
+
+      try {
+        
+        const res = await fetch("/generate-schedule", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tasks })
+        });
+
+
+        const raw = await res.text();
+
+
+        if (!res.ok) throw new Error(raw || res.statusText);
+
+
+        let humanText;
+        try {
+          const obj = JSON.parse(raw);
+          humanText = obj.reply;
+        } catch {
+
+          humanText = raw;
+        }
+  
+
+        document.getElementById("scheduleContent").innerHTML = marked.parse(humanText);
+
+        document.getElementById("scheduleModal").style.display = "block";
+
+      } catch (err) {
+        alert("Failed to generate schedule:\n" + err.message);
+      }
+    }
+
+
+
+
+
+    document
+      .getElementById("sidebarToggle")
+      .addEventListener("click", () => {
+        document.querySelector(".sidebar").classList.toggle("open");
+      });
+
+
+
+
+    const trash = document.querySelector('.trash-column');
+
+
+    trash.addEventListener('dragover', e => {
+      e.preventDefault();
+      trash.classList.add('drag-over');
+    });
+
+
+    trash.addEventListener('dragleave', e => {
+      trash.classList.remove('drag-over');
+    });
+
+
+    trash.addEventListener('drop', e => {
+      e.preventDefault();
+      trash.classList.remove('drag-over');
+      handleTrashDrop(e);
+    });
+
+
+    //POMODORO CODE
+
+
+    let minuteScale = 60;
+    let pomoInterval = null;
+    let pomoMode = "focus";
+    let pomoTime = 25 * minuteScale;
+    let pomoCycles = 4;
+    let pomoCurrentCycle = 1;
+    let pomoPaused = false;
+
+    function pomoStart() {
+      completedAtStart = boardData.reduce((sum, col) => {
+        return sum + col.tasks.filter(t => t.completed).length;
+      }, 0);
+
+      const focus = Math.max(1, parseInt(document.getElementById("pomoFocus").value) || 25);
+      const brk = Math.max(1, parseInt(document.getElementById("pomoBreak").value) || 5);
+      pomoCycles = Math.max(1, parseInt(document.getElementById("pomoCycles").value) || 4);
+
+      if (!pomoPaused) {
+        pomoMode = "focus";
+        pomoTime = focus * minuteScale;
+        pomoCurrentCycle = 1;
+        document.getElementById("pomoStatus").textContent = `Focus #${pomoCurrentCycle} of ${pomoCycles}`;
+      } else {
+        pomoPaused = false;
+      }
+
+      clearInterval(pomoInterval);
+      pomoInterval = setInterval(() => {
+        if (pomoTime > 0) {
+          pomoTime--;
+          pomoDisplay();
+        } else {
+          if (pomoMode === "focus") {
+            if (pomoCurrentCycle >= pomoCycles) {
+              let completedNow = boardData.reduce((sum, col) => {
+                return sum + col.tasks.filter(t => t.completed).length;
+              }, 0);
+
+
+
+              let tasksDone = completedNow - completedAtStart;
+
+              let msg = tasksDone > 0
+                ? `You completed ${tasksDone} task${tasksDone > 1 ? "s" : ""} this session! All cycles done! Good job!`
+                : "No tasks completed this session. Try finishing one next time!";
+
+              notifyUser(msg);
+         
+              document.getElementById("pomoStatus").textContent = "All cycles done! 🎉";
+              clearInterval(pomoInterval);
+              pomoDisplay();
+              return;
+            }
+            pomoMode = "break";
+            pomoTime = brk * minuteScale;
+            document.getElementById("pomoStatus").textContent = `Break #${pomoCurrentCycle} of ${pomoCycles}`;
+            notifyUser("Break Time!");
+          } else {
+            pomoCurrentCycle++;
+            pomoMode = "focus";
+            pomoTime = focus * minuteScale;
+            document.getElementById("pomoStatus").textContent = `Focus #${pomoCurrentCycle} of ${pomoCycles}`;
+            notifyUser("Back to work!");
+          }
+          pomoDisplay();
+        }
+      }, 1000);
+      pomoDisplay();
+    }
+
+    function pomoPause() {
+      if (pomoInterval) {
+
+        clearInterval(pomoInterval);
+        pomoInterval = null;
+        pomoPaused = true;
+        if (!document.getElementById("pomoStatus").textContent.includes("(Paused)"))
+          document.getElementById("pomoStatus").textContent += " (Paused)";
+      } else if (pomoPaused) {
+
+        pomoPaused = false;
+        document.getElementById("pomoStatus").textContent =
+          document.getElementById("pomoStatus").textContent.replace(" (Paused)", "");
+        pomoInterval = setInterval(() => {
+
+          if (pomoTime > 0) {
+            pomoTime--;
+            pomoDisplay();
+          } else {
+            const focus = Math.max(1, parseInt(document.getElementById("pomoFocus").value) || 25);
+            const brk = Math.max(1, parseInt(document.getElementById("pomoBreak").value) || 5);
+            if (pomoMode === "focus") {
+              if (pomoCurrentCycle >= pomoCycles) {
+                notifyUser("All cycles done! Good job!");
+                document.getElementById("pomoStatus").textContent = "All cycles done! 🎉";
+                clearInterval(pomoInterval);
+                pomoInterval = null;
+                pomoDisplay();
+                return;
+              }
+              pomoMode = "break";
+              pomoTime = brk * minuteScale;
+              document.getElementById("pomoStatus").textContent = `Break #${pomoCurrentCycle} of ${pomoCycles}`;
+              notifyUser("Break Time!");
+            } else {
+              pomoCurrentCycle++;
+              pomoMode = "focus";
+              pomoTime = focus * minuteScale;
+              document.getElementById("pomoStatus").textContent = `Focus #${pomoCurrentCycle} of ${pomoCycles}`;
+              notifyUser("Back to work!");
+            }
+            pomoDisplay();
+          }
+        }, 1000);
+      }
+    }
+
+
+
+    function pomoReset() {
+      clearInterval(pomoInterval);
+      pomoMode = "focus";
+      pomoTime = (parseInt(document.getElementById("pomoFocus").value) || 25) * minuteScale;
+      pomoCurrentCycle = 1;
+      pomoPaused = false;
+      document.getElementById("pomoStatus").textContent = "Ready";
+      pomoDisplay();
+    }
+
+    function pomoDisplay() {
+      const min = Math.floor(pomoTime / 60).toString().padStart(2, '0');
+      const sec = (pomoTime % 60).toString().padStart(2, '0');
+      document.getElementById("pomoDisplay").textContent = `${min}:${sec}`;
+    }
+
+
+    if ('Notification' in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+
+    function notifyUser(text) {
+      if ('Notification' in window && Notification.permission === "granted") {
+        new Notification(text);
+      } else {
+        Notification.requestPermission();
+
+      }
+    }
+
+
+    //dark mode
+
+    const darkToggle = document.getElementById("darkModeToggle");
+darkToggle.addEventListener("click", () => {
+  document.body.classList.toggle("dark-mode");
+
+  localStorage.setItem("darkMode", document.body.classList.contains("dark-mode") ? "1" : "");
+});
+
+if (localStorage.getItem("darkMode") === "1") {
+  document.body.classList.add("dark-mode");
+}
+
+
+    // load last
+    loadFromStorage();
+  </script>
+</body>
+
+</html>

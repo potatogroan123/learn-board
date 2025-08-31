@@ -1,10 +1,12 @@
-Hello if you want to try this out
-Download everything put index and icon into a new folder called public.
+## QUICK START
 
-Run npm install express node-fetch body-parser cors dotenv marked
+Hello if you want to try this out  
+Download everything put index and icon into a new folder called public.  
 
-then npm start
+Run npm install express node-fetch body-parser cors dotenv marked  
 
-open localhost:3000
+then npm start  
+
+open localhost:3000  
 
 Make sure you put an openrouter key into .env so you can use the AI aspect.
